@@ -140,3 +140,32 @@
 .ed-bulk{margin-top:1.6vmin;border-top:2px solid var(--pss);padding-top:1.2vmin}
 .ed-bulk summary{font-size:1.9vmin;font-weight:800;color:var(--pd);cursor:pointer;padding:.4vmin 0}
 .ed-bulk #lvNames{height:26vmin}
+
+/* 👁 إجابات الطالبات */
+#lvAns .lv-card{width:min(94vw,150vmin);max-height:88vh;display:flex;flex-direction:column;padding:2.4vmin 2.8vmin}
+.an-head{display:flex;align-items:center;gap:1.2vmin}
+.an-t{flex:1;font-size:2.8vmin;font-weight:900;color:var(--pdd);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.an-head .x{font-size:2.6vmin;color:var(--muted);padding:0 .6vmin}
+.an-sub{font-size:1.9vmin;font-weight:700;color:var(--muted);margin:.8vmin 0 1.4vmin}
+.an-sub b{color:var(--pd);font-size:2.2vmin}
+.an-body{overflow:auto;flex:1;min-height:0}
+.an-row{display:flex;align-items:center;gap:1.2vmin;padding:.9vmin 1.4vmin;border-radius:1.6vmin;background:var(--pss);margin-bottom:.7vmin;border-right:.7vmin solid var(--line)}
+.an-row.ok{border-right-color:var(--ok)}
+.an-row.mid{border-right-color:var(--amber)}
+.an-row.bad{border-right-color:var(--bad)}
+.an-nm{width:24vmin;flex:none;font-size:2.1vmin;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.an-v{flex:1;display:flex;flex-wrap:wrap;gap:.6vmin}
+.ap{background:#fff;border:2px solid var(--line);border-radius:999px;padding:.2vmin 1.2vmin;font-size:1.8vmin;font-weight:800;line-height:1.6}
+.ap.y{border-color:#6EE7B7;background:var(--okS);color:#047857}
+.ap.n{border-color:#FDA4AF;background:var(--badS);color:#BE123C}
+.ap.big{font-size:3.4vmin;border:0;background:none;padding:0}
+.an-sc{font-size:2.2vmin;font-weight:900;color:var(--pd);direction:ltr;min-width:6vmin;text-align:center}
+.an-miss{margin-top:1.4vmin;padding:1.2vmin 1.4vmin;border:2px dashed var(--line);border-radius:1.6vmin;font-size:1.8vmin;color:var(--muted);line-height:2}
+.an-miss span{display:inline-block;background:var(--pss);border-radius:999px;padding:0 1.1vmin;margin:.2vmin;font-weight:800;color:var(--ink)}
+
+/* 📊 النتائج */
+.rs-row{display:grid;grid-template-columns:1fr 7vmin 7vmin 6vmin;gap:.8vmin;align-items:center;padding:.7vmin 1vmin;border-radius:1.2vmin;margin-bottom:.4vmin;background:var(--pss);font-size:1.9vmin;font-weight:800;text-align:center;direction:rtl}
+.rs-row .nm{text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rs-row .pt{color:var(--p);font-size:2.2vmin}
+.rs-row.rs-h{background:none;color:var(--muted);font-size:1.6vmin}
+.rs-row.abs{opacity:.5}

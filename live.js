@@ -103,7 +103,7 @@ const LIVE = (() => {
       <aside id="lvDrawer">
         <div class="dr-head">👩‍🎓 الطالبات <button class="x" data-a="close">✕</button></div>
         <div class="dr-sub"></div>
-        <div class="dr-tabs"><button data-tab="list" class="on">📋 التحضير والنقاط</button><button data-tab="edit">✏️ أسماء الطالبات</button></div>
+        <div class="dr-tabs"><button data-tab="list" class="on">📋 التحضير والنقاط</button><button data-tab="edit">✏️ أسماء الطالبات</button><button data-tab="res">📊 النتائج</button></div>
         <div class="dr-body lv-scroll"></div>
         <div class="dr-foot">
           <button class="lv-btn sm" data-a="pick">🎲 قرعة</button>
@@ -111,6 +111,10 @@ const LIVE = (() => {
           <button class="lv-btn ghost sm" data-a="out">🚪 خروج</button>
         </div>
       </aside>
+      <div id="lvAns" class="lv-ov"><div class="lv-card">
+        <div class="an-head"><span class="an-t"></span><button class="lv-btn ghost sm an-hide" title="إخفاء الإجابات عن السبورة">🙈 إخفاء الأسماء</button><button class="x">✕</button></div>
+        <div class="an-sub"></div><div class="an-body lv-scroll"></div>
+      </div></div>
       <div id="lvAward"><div class="aw-head">🏅 من أجابت؟ <span class="pts">+1</span><button class="x">✕</button></div><div class="aw-list lv-scroll"></div></div>
       <div id="lvPick" class="lv-ov"><div class="lv-card">
         <div class="lp-t">🎲 قرعة الأسماء</div><div class="lp-name">…</div>
@@ -133,6 +137,7 @@ const LIVE = (() => {
       else if(b.dataset.a==='pick') openPick();
       else if(b.dataset.a==='new') newSession(true);
       else if(b.dataset.a==='out') logout();
+      else if(b.dataset.a==='csv') downloadCSV();
       else if(b.dataset.a==='save') addNames($('#lvNames').value, ()=>{ $('#lvNames').value=''; });
       else if(b.dataset.a==='add') addNames($('#lvAdd').value, ()=>{ $('#lvAdd').value=''; $('#lvAdd').focus(); });
       else if(b.dataset.ed){ editN=b.dataset.ed; editFocus=true; drawDrawer(); }
@@ -146,6 +151,9 @@ const LIVE = (() => {
       if(e.key==='Enter' && e.target.id==='lvAdd') $('#lvDrawer [data-a="add"]').click();
       else if(e.target.closest('.ed-row')){ if(e.key==='Enter') $('.ed-row [data-ok]').click(); else if(e.key==='Escape'){ e.stopPropagation(); editN=null; drawDrawer(); } }
     });
+    $('#lvAns .x').onclick=()=>$('#lvAns').classList.remove('open');
+    $('#lvAns').addEventListener('click', e=>{ if(e.target.id==='lvAns') $('#lvAns').classList.remove('open'); });
+    $('#lvAns .an-hide').onclick=e=>{ ansAnon=!ansAnon; e.currentTarget.textContent=ansAnon?'👀 إظهار الأسماء':'🙈 إخفاء الأسماء'; drawAns(); };
     $('#lvAward .x').onclick=()=>$('#lvAward').classList.remove('open');
     $('#lvPick .lp-go').onclick=spin;
     $('#lvPick .lp-close').onclick=()=>$('#lvPick').classList.remove('open');
@@ -220,6 +228,13 @@ const LIVE = (() => {
       if(ei && (editFocus || keep.focus==='ed')){ ei.focus(); if(editFocus) ei.select(); editFocus=false; }
       else if(keep.focus==='lvAdd') $('#lvAdd').focus();
       else if(keep.focus==='lvNames') $('#lvNames').focus();
+    } else if(tab==='res'){
+      const { qs, rows }=results(), rev=qs.filter(i=>st.rev['s'+i]).length;
+      body.innerHTML=!all.length?'<div class="dr-empty">لا توجد أسماء بعد 🌱</div>'
+        :`<p class="dr-note">أسئلة الآيباد: <b>${qs.length}</b> (منها <b>${rev}</b> مكشوفة). «كاملة» = إجابة صحيحة بالكامل.</p>
+        <div class="rs-row rs-h"><span class="nm">الطالبة</span><span>أجابت</span><span>كاملة</span><span>النقاط</span></div>
+        ${rows.sort((a,b)=>b.pts-a.pts||a.n-b.n).map(r=>`<div class="rs-row ${r.present?'':'abs'}"><span class="nm">${esc(r.name)}</span><span>${r.answered}/${qs.length}</span><span>${r.right}/${rev}</span><span class="pt">${r.pts}</span></div>`).join('')}
+        <div style="margin-top:1.4vmin"><button class="lv-btn" data-a="csv" style="width:100%">⬇️ تنزيل النتائج (Excel)</button></div>`;
     } else if(!all.length){
       body.innerHTML=`<div class="dr-empty">لا توجد أسماء بعد 🌱<br>اضغطي «✏️ أسماء الطالبات» وأضيفي أسماء فصلكِ</div>`;
     } else {
@@ -370,25 +385,91 @@ const LIVE = (() => {
     if(QUIZ.includes(s.type)){
       if(st.rev[sk]){
         const { k }=payload(i), right=who.filter(n=>{ const g=grade(s,k,ans[n].v); return g.c===g.n; }).length;
-        html=`<span class="ok">✅ صحيحة <b>${right}</b> من ${who.length}</span><button class="lv-btn ghost sm" data-a="reset">↺ إعادة السؤال</button>`;
+        html=`<span class="ok">✅ صحيحة <b>${right}</b> من ${who.length}</span><button class="lv-btn ghost sm" data-a="ans">👁 الإجابات</button><button class="lv-btn ghost sm" data-a="reset">↺ إعادة السؤال</button>`;
         if(s.type==='mcq'){
           const cnt={}; who.forEach(n=>{ cnt[ans[n].v]=(cnt[ans[n].v]||0)+1; });
           $$('.opt', slides[i].el).forEach(o=>{ const c=cnt[o.dataset.k]||0; o.insertAdjacentHTML('beforeend',`<span class="lv-cnt">${c}</span>`); });
         }
       } else {
-        html=`<span>✍️ أجابت <b>${who.length}</b> / ${Math.max(online,who.length)}</span><button class="lv-btn sm" data-a="reveal">📣 كشف الإجابة</button>`;
+        html=`<span>✍️ أجابت <b>${who.length}</b> / ${Math.max(online,who.length)}</span><button class="lv-btn ghost sm" data-a="ans">👁 الإجابات</button><button class="lv-btn sm" data-a="reveal">📣 كشف الإجابة</button>`;
       }
     } else if(s.type==='brainstorm'){
-      html=`<span>💡 أفكار الطالبات: <b>${Object.keys(st.ideas[sk]||{}).length}</b></span>`;
+      html=`<span>💡 أفكار الطالبات: <b>${Object.keys(st.ideas[sk]||{}).length}</b></span><button class="lv-btn ghost sm" data-a="ans">👁 مَن كتبت ماذا؟</button>`;
     } else if(s.type==='groups'){
       const n=st.groups?Object.keys(st.groups.m||{}).filter(x=>st.roster[x]).length:0;
       html=`${n?`<span>👭 وُزّعت <b>${n}</b> طالبة</span>`:''}<button class="lv-btn sm" data-a="groups">🎲 ${n?'إعادة التوزيع':'توزيع الطالبات على المجموعات'}</button>`;
     } else if(s.type==='closing' && s.rating){
       const cnt={}; who.forEach(n=>{ cnt[ans[n].v]=(cnt[ans[n].v]||0)+1; });
-      html=`<span>تقييم الطالبات:</span>`+s.rating.map((r,k)=>`<span>${r.e} <b>${cnt[k]||0}</b></span>`).join('');
+      html=`<span>تقييم الطالبات:</span>`+s.rating.map((r,k)=>`<span>${r.e} <b>${cnt[k]||0}</b></span>`).join('')+`<button class="lv-btn ghost sm" data-a="ans">👁 التفاصيل</button>`;
     }
     d.innerHTML=html; d.classList.toggle('show',!!html);
-    $$('button',d).forEach(b=>b.onclick=()=>({ reveal, reset:resetQ, groups:assignGroups })[b.dataset.a]());
+    $$('button',d).forEach(b=>b.onclick=()=>({ reveal, reset:resetQ, groups:assignGroups, ans:openAns })[b.dataset.a]());
+    if($('#lvAns.open')){ if(ansSlide===i) drawAns(); else $('#lvAns').classList.remove('open'); }
+    if($('#lvDrawer.open') && ($('.dr-tabs .on')||{}).dataset?.tab==='res') drawDrawer();
+  }
+
+  /* ==========================================================================
+     👁 إجابات الطالبات (لكل سؤال) — تتحدّث مباشرة أثناء الإجابة
+     ========================================================================== */
+  let ansSlide=null, ansAnon=false;
+  function openAns(){ ansSlide=current; drawAns(); $('#lvAns').classList.add('open'); }
+
+  // وصف إجابة طالبة بنص مختصر، مع علامات الصح والخطأ بعد الكشف
+  function describe(i, v, rev){
+    const s=slides[i].cfg, { q, k }=payload(i), mark=ok=>rev?(ok?'y':'n'):'';
+    const chip=(ok,html)=>`<span class="ap ${mark(ok)}">${html}</span>`, cut=(t,m)=>{ t=strip(t); return t.length>m?t.slice(0,m)+'…':t; };
+    if(s.type==='mcq'){ const o=q.options[+v]; return o?chip(+v===k.answer, `${o.icon} ${cut(o.t,60)}`):'—'; }
+    if(s.type==='tf') return q.items.map((_,j)=>chip(v[j]===k.a[j], `${j+1} ${v[j]===1?'✔ صح':v[j]===0?'✖ خطأ':'—'}`)).join('');
+    if(s.type==='sort') return q.items.map((it,j)=>{ const b=q.buckets.find(x=>x.key===v[j]); return chip(v[j]===k.b[j], `${it.icon||j+1} ${cut(it.t,26)} ← ${b?b.icon+' '+b.label:'—'}`); }).join('');
+    if(s.type==='order') return (Array.isArray(v)?v:[]).map((j,p)=>chip(j===k.order[p], `${p+1}. ${q.items[j]?q.items[j].icon+' '+cut(q.items[j].t,22):'—'}`)).join('');
+    if(s.type==='match') return q.a.map((t,j)=>chip(v[j]===k.m[j], `${cut(t,22)} ← ${q.b[v[j]]!=null?cut(q.b[v[j]],34):'—'}`)).join('');
+    if(s.type==='closing'){ const r=(s.rating||[])[+v]; return r?`<span class="ap big">${r.e}</span>`:'—'; }
+    return '—';
+  }
+
+  function drawAns(){
+    const i=ansSlide; if(i==null || !slides[i]) return;
+    const s=slides[i].cfg, sk='s'+i, rev=!!st.rev[sk], body=$('#lvAns .an-body');
+    const nm=(n,x)=>ansAnon?`طالبة ${x+1}`:esc(st.roster[n]);
+    $('#lvAns .an-t').textContent=`📋 إجابات الطالبات — ${strip(s.title||s.tag||'')}`;
+    if(s.type==='brainstorm'){
+      const by={}; Object.values(st.ideas[sk]||{}).forEach(it=>{ if(it&&it.t) (by[it.n]=by[it.n]||[]).push(it.t); });
+      const who=Object.keys(by).filter(n=>st.roster[n]);
+      $('#lvAns .an-sub').innerHTML=`💡 كتبت <b>${who.length}</b> طالبة • عدد الأفكار <b>${Object.keys(st.ideas[sk]||{}).length}</b>`;
+      body.innerHTML=who.length?who.map((n,x)=>`<div class="an-row"><span class="an-nm">${nm(n,x)}</span><span class="an-v">${by[n].map(t=>`<span class="ap">${esc(t)}</span>`).join('')}</span></div>`).join('')
+        :'<div class="dr-empty">لم تصل أفكار بعد…</div>';
+      return;
+    }
+    const ans=st.answers[sk]||{}, who=ids().filter(n=>ans[n]), { k }=payload(i);
+    const g=n=>QUIZ.includes(s.type)?grade(s,k,ans[n].v):null;
+    // بعد الكشف نعرض الخطأ أولًا ليسهل على المعلمة متابعة من تحتاج مساعدة
+    const order=rev?who.slice().sort((a,b)=>{ const A=g(a),B=g(b); return A.c/A.n-B.c/B.n; }):who;
+    const missing=presentIds().filter(n=>!ans[n]);
+    const right=rev?who.filter(n=>{ const x=g(n); return x.c===x.n; }).length:null;
+    $('#lvAns .an-sub').innerHTML=`✍️ أجابت <b>${who.length}</b> من ${Math.max(presentIds().length,who.length)}`+(rev&&QUIZ.includes(s.type)?` • ✅ إجابة كاملة <b>${right}</b> • ❌ تحتاج مراجعة <b>${who.length-right}</b>`:QUIZ.includes(s.type)?' • تظهر علامات التصحيح بعد «كشف الإجابة»':'');
+    body.innerHTML=(order.length?order.map((n,x)=>{ const r=g(n);
+        return `<div class="an-row ${rev&&r?(r.c===r.n?'ok':r.c?'mid':'bad'):''}"><span class="an-nm">${nm(n,x)}</span><span class="an-v">${describe(i,ans[n].v,rev)}</span>${rev&&r&&r.n>1?`<span class="an-sc">${r.c}/${r.n}</span>`:''}</div>`; }).join('')
+        :'<div class="dr-empty">لم تصل إجابات بعد… ⏳</div>')
+      +(missing.length?`<div class="an-miss"><b>⏳ لم تُجب بعد (${missing.length}):</b> ${missing.map((n,x)=>`<span>${ansAnon?'•':esc(st.roster[n])}</span>`).join('')}</div>`:'');
+  }
+
+  /* ---------- 📊 النتائج: ملخص كل الأسئلة لكل طالبة ---------- */
+  function quizSlides(){ return slides.map((sl,i)=>i).filter(i=>QUIZ.includes(slides[i].cfg.type) && (st.rev['s'+i] || Object.keys(st.answers['s'+i]||{}).length)); }
+  function results(){
+    const qs=quizSlides(), t=totals();
+    return { qs, rows:ids().map(n=>{
+      let answered=0, right=0; const cells=qs.map(i=>{ const a=(st.answers['s'+i]||{})[n]; if(!a) return '';
+        answered++; if(!st.rev['s'+i]) return 'أجابت'; const s=slides[i].cfg, r=grade(s,payload(i).k,a.v); if(r.c===r.n) right++; return `${r.c}/${r.n}`; });
+      return { n, name:st.roster[n], answered, right, pts:t[n]||0, present:isPresent(n), cells };
+    }) };
+  }
+  function downloadCSV(){
+    const { qs, rows }=results(), q=x=>`"${String(x).replace(/"/g,'""')}"`;
+    const head=['الرقم','الاسم','الحضور',...qs.map(i=>`ش${i+1}: ${strip(slides[i].cfg.title||'')}`),'أجابت','إجابات كاملة','النقاط'];
+    const lines=[head.map(q).join(','), ...rows.map(r=>[r.n,r.name,r.present?'حاضرة':'غائبة',...r.cells,r.answered,r.right,r.pts].map(q).join(','))];
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob(['\ufeff'+lines.join('\r\n')],{ type:'text/csv;charset=utf-8' }));
+    a.download=`نتائج ${LESSON.title} - ${code} - ${today()}.csv`; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500);
   }
 
   /* ---------- التعلم التعاوني: توزيع عشوائي ---------- */
