@@ -423,6 +423,13 @@ input{font-family:inherit;-webkit-user-select:text;user-select:text}
 .map-center .mc-ic{font-size:58px}.map-center .mc-t{font-size:36px;font-weight:900}.map-center .mc-d{font-size:26px;font-weight:600;line-height:1.55}
 .map-center.enter{animation:pop .4s}
 
+/* ---------- ربط بالمواطنة (مادة نظامية) ---------- */
+.law{position:relative;background:linear-gradient(160deg,#F3FBF6,#E2F4E9);border:3px solid #86C9A0;border-radius:36px;padding:24px 60px 22px;
+  text-align:center;box-shadow:var(--shadow);margin-top:10px}
+.law-src{display:inline-flex;align-items:center;gap:10px;background:#006C35;color:#fff;border-radius:999px;padding:4px 24px;font-size:24px;font-weight:800;margin-bottom:6px}
+.law-t{font-family:'Amiri','Traditional Arabic',serif;font-size:46px;font-weight:700;line-height:1.85;color:#0B3B22}
+.law-t mark{background:linear-gradient(transparent 55%,#BBF7D0 55%);color:#065F46;padding:0 6px;border-radius:6px}
+
 /* ---------- فيديو ---------- */
 .video-wrap{flex:1;display:flex;align-items:center;justify-content:center;min-height:0}
 .video-box{height:100%;max-height:690px;aspect-ratio:16/9;border-radius:32px;overflow:hidden;background:#000;
@@ -548,7 +555,7 @@ body.idle #hint{opacity:0}
               ولحذف شريحة احذفي القوس { ... } الخاص بها. عدد الشرائح يُحسب تلقائيًا.
    • أنواع الشرائح (type):
        title, mcq, objectives, brainstorm, blanks, cards, order, footprints,
-       sort, reveal, terminal, tps, compare, match, tf, groups, challenge,
+       sort, reveal, value, law, terminal, tps, compare, match, tf, groups, challenge,
        review, leaderboard, closing
    • العرض التزامني: تدخل المعلمة برمزها فتظهر الأسئلة (mcq, tf, sort, order, match) في آيباد كل طالبة،
      وبعد «📣 كشف الإجابة» تُحسب النقاط تلقائيًا. التحضير وقرعة الأسماء من زري 👩‍🎓 و 🎲
@@ -874,6 +881,18 @@ const SLIDES = [
       { icon:'📱', t:'الحفظ على الأجهزة', d:'الأقراص والهواتف قد يصل إليها آخرون.' },
       { icon:'🏢', t:'إتاحتها لجهات متعددة', d:'باحثون، سلطات، محاكم، وشركات تسويق.' }
     ] },
+
+  /* 28-أ) ربط بالمواطنة: المادة 34 من النظام الأساسي للحكم */
+  { type:'law', tag:'🇸🇦 ربط بالمواطنة', title:'أمني الرقمي… جزء من أمن وطني', anim:'fade', h:250,
+    source:'النظام الأساسي للحكم — المادة (34)',
+    text:'الدفاع عن العقيدة الإسلامية والمجتمع والوطن <mark>واجبٌ على كل مواطن</mark>، ويبيّن النظام أحكام الخدمة العسكرية',
+    items:[
+      { icon:'📵', cover:'لا أصوّر', t:'المواقع الحساسة',   d:'لا أصوّر المنشآت العسكرية والأمنية والحيوية، ولا أنشر صورها أو مواقعها.' },
+      { icon:'🪖', cover:'لا أنشر',  t:'تحركات رجال الأمن', d:'لا أنشر صور الجنود أو أماكنهم أو تحركاتهم؛ فقد يستغلها الأعداء.' },
+      { icon:'🔐', cover:'أحفظ',     t:'المعلومات السرية',  d:'لا أشارك وثائق أو صورًا تكشف معلومات سرية أو بيانات عمل أسرتي والجهات الحكومية.' },
+      { icon:'🚨', cover:'أبلّغ',    t:'عن كل مشبوه',       d:'أبلّغ عن الحسابات والروابط المشبوهة عبر تطبيق «كلنا أمن».' }
+    ],
+    tip:'🧩 صورة صغيرة أو معلومة عابرة قد تكون قطعةً في أحجية يجمعها العدو… حمايتي لمعلوماتي دفاعٌ عن وطني 🇸🇦' },
 
   /* 26) مقارنة: جدار الحماية ومكافحة الفيروسات */
   { type:'compare', tag:'⚖️ قارني', title:'جدار الحماية 🆚 مكافحة الفيروسات',
@@ -1357,6 +1376,16 @@ R.value = {
     <div class="reveal-grid rv" style="--n:${s.items.length};--h:${s.h||250}px">${s.items.map((it,k)=>`<button class="rev"><div class="rev-cover">${it.icon}<small>${it.cover||'اضغطي للكشف'}</small></div>
       <div class="rev-content"><div class="rev-t">${it.t}</div><p>${it.d}</p></div></button>`).join('')}</div>
     <div class="center-row rv"><button class="btn ghost rev-all">📖 إظهار المعاني</button></div>
+    ${s.tip?`<p class="value-tip rv">${s.tip}</p>`:''}`,
+  init:sec=>R.reveal.init(sec)
+};
+
+/* ربط بالمواطنة: نص مادة نظامية + كشف السلوكيات */
+R.law = {
+  html:s=>`<div class="law rv"><div class="law-src">🇸🇦 ${s.source}</div><p class="law-t">«${s.text}»</p></div>
+    <div class="reveal-grid rv" style="--n:${s.items.length};--h:${s.h||250}px">${s.items.map(it=>`<button class="rev"><div class="rev-cover">${it.icon}<small>${it.cover||'اضغطي للكشف'}</small></div>
+      <div class="rev-content"><div class="rev-t">${it.t}</div><p>${it.d}</p></div></button>`).join('')}</div>
+    <div class="center-row rv"><button class="btn ghost rev-all">👀 إظهار الكل</button></div>
     ${s.tip?`<p class="value-tip rv">${s.tip}</p>`:''}`,
   init:sec=>R.reveal.init(sec)
 };
